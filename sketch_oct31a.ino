@@ -29,12 +29,21 @@ IPAddress ip(192,168,0,70);
 
 EthernetServer server(80);    // Puerto 80 por defecto para HTTP
 
+float t = 0;    //TEMPERATURA
+float h = 0;    //HUMEDAD
+String data;
+
 void setup() {
   Ethernet.begin(mac,ip);    //inicializa la conexión Ethernet y el servidor
   //Serial.begin(9600);
   server.begin();
   //Serial.begin("Empieza sensado");
   dht.begin();
+  delay(10000);       //le damos tiempo al DHT para que empieze
+
+  h = dht.readHumidity();
+  t = dht.readTemperature();
+  data = "";
 }
 
 void loop() {
@@ -64,18 +73,39 @@ void loop() {
           float h = dht.readHumidity();
           float t = dht.readTemperature();
 
+          data = "temp=" + String(t) + "&hum=" + String(h);
+          
           if(isnan(h) || isnan(t)){
                 cliente.print("Fallo del sensor al medir");
                 cliente.println("<br />");         
                 return;
           }
+          
+          /*
+          if(client.connect("www.*******.heroku.com",80)){      //DIRECCION DEL SERVER
+              client.println("POST /*****.html HTTP/1.1");
+              client.println("Host: *******.heroku.com");       //DIRECCION DEL SERVER
+              client.println("Content-Type: application/x-www-form-urlencoded");
+              client.print("Content-Length: ");
+              client.println(data.length());
+              client.println();
+              client.print(data);
+         }
+          */
+
           cliente.print("Humedad: ");
           cliente.print(h);
           cliente.println("<br />");       
         
           cliente.print("Temperatura: ");
           cliente.print(t);
+          cliente.println("<br />"); 
+
+                
+          cliente.print("Datos: ");
+          cliente.print(data);
           cliente.println("<br />");       
+        
         
           cliente.println("<br />"); 
           cliente.println("</html>");
@@ -89,6 +119,7 @@ void loop() {
         }
       }
     }
+   //delay(300000);
    delay(15);           // Da tiempo al Servidor para que reciba los datos 15ms
    cliente.stop();     // cierra la conexion
   }
